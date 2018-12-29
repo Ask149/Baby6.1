@@ -48,7 +48,7 @@ class c_Brain : public c_Cerebellum
             int a, ConfidenceLevel;
             string b,c,CheckedPattern;
             int SubjectLocation;
-            bool ISQ,Greeting;
+            bool Greeting;
             a = 0;
 
 
@@ -60,7 +60,8 @@ class c_Brain : public c_Cerebellum
 
 
             if(a == 0){                                                                   //check for command
-             SetWordTypes();                                                               //try to set all word types
+             SaveReceivedInput(strData,true);                                             //update short term memory
+             SetWordTypes();                                                              //try to set all word types
              SubjectLocation = FindSubject();                                             //try to located subject
              SetSubjectLocation(SubjectLocation);                                         //set the suggestion
              CheckedPattern = PatternReview(GetPattern(),ConfidenceLevel);                //see if language class can enhance pattern
@@ -77,6 +78,7 @@ class c_Brain : public c_Cerebellum
              DecipherCurrentSentence();                                                             //work with sentence
              SetSubjectLocation(SubjectLocation);                                                  //store the location or -1
              a = StoreNewWords();                                                                  //save any new words in rBrainCells
+             SaveProcessedPattern(GetPattern());                                                   //update short term memory
              if(SubjectLocation >=0)
                 SetSubject(GetWordTokens(SubjectLocation),GetWords(SubjectLocation));
              }
@@ -188,6 +190,12 @@ class c_Brain : public c_Cerebellum
                     else
                         Verbose = true;
 
+                    Control = 2;
+                    break;
+                }
+            case 3387:  //report flow
+                {
+                    ReportStorageFlow();
                     Control = 2;
                     break;
                 }

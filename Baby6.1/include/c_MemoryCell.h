@@ -14,6 +14,7 @@ class c_MemoryCell
     private:
         string pCellData;          // the raw data
         string pCellDataLC;        // raw data in lower case
+        string GivenName;          // if this noun or proper noun has a given name
         char pCellPurpose;         // s-sentence w-word r-response m-memory
         char pWordType;            // n-noun v-verb p-pronoun a-adjective d-determiner(the) r-subject representative(it that) u-unknown c-connecting word(and)  C(cap) Contraction word
                                    // n-noun p-pronoun v-verb q-question word a-adjective r-subject replacement P(cap) ProperNoun i.e. name A(cap) Adverb D(cap) Direct Object I(LC) Indirect object
@@ -22,7 +23,7 @@ class c_MemoryCell
                                    // the decision on this word type is made elsewhere
         char SecondaryType;        // Could be used as another type i.e. light-n light red - A box is light -a
         char AlternateType;        // some words without modification could have a third type (All type references conform to pWordType definitions)
-        char GenderClass;          // n - neutral e- either m - male only f - female only
+        char GenderClass;          // n - neutral e- either m - male only f - female only u - undefined
         bool pIsRoot;              // the root of a word
         bool pIsSet;               // Has been set with data before
         int  pNextVerb;            // pointer to next verb
@@ -56,6 +57,8 @@ class c_MemoryCell
         bool   GetpIsSet() {return pIsSet;}
         void   SetGenderClass(char NewClass){GenderClass = NewClass;}
         char   GetGenderClass(){return GenderClass;}
+        string GetGivenName(){return GivenName;}
+        void   SetGivenName(string NewName){GivenName = NewName;}
 
         void SetpCellDataString(string NewData){
             pCellData = NewData;

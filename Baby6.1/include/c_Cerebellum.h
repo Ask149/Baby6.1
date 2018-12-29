@@ -1,10 +1,10 @@
 #ifndef C_CEREBELLUM_H
 #define C_CEREBELLUM_H
 
-#include <c_Medulla.h>
+#include <c_Cortex.h>
 
 
-class c_Cerebellum : public c_Medulla
+class c_Cerebellum : public c_Cortex
 {
     public:
         c_Cerebellum();

@@ -15,7 +15,10 @@ class c_Cortex : public c_Language
             char tmpWordType;
             int NounLocation;
             int DeterminerLocation;
-            int ProNounLocation;
+            int ProNounOtherLocation;
+            int ProNounInwardLocation;
+            int ProNounOutwardLocation;
+            int AssociativeWordLocation;
             int VerbLocation;
             int AdjectiveLocation;
             int SubjectLoc;
@@ -34,6 +37,7 @@ class c_Cortex : public c_Language
             int DirectObjectLocation;
             int IndirectObjectLocation;
             int PluralPossessiveLocation;
+            int PluralPronounLocation;
             float UnderstandingRatio;
             bool ISQ;
 
@@ -45,17 +49,23 @@ class c_Cortex : public c_Language
             if(Verbose){cout << "[c_Cortex.h::DeciperCurrentSentence]" << endl;}
             SubjectLoc = GetSubjectLocation();
             AdjectiveLocation  = -1; FirstUnknown = -1; ContractionLocation = -1;
-            DeterminerLocation = -1; ProNounLocation = -1; ISQ = false;
+            DeterminerLocation = -1; ProNounOtherLocation = -1; ISQ = false;
             Pattern = ""; NounLocation = -1; Control = -1; UnderstandingLevel = 0;
             UnderstandingRatio = 0.0; UnknownCount = 0; QuestionLocation = 0;
             AdverbLocation = -1; DirectiveLocation = -1; JoinerLocation = -1;
             DirectObjectLocation = -1; IndirectObjectLocation = -1; PluralPossessiveLocation = -1;
+            ProNounInwardLocation = -1; ProNounOutwardLocation = -1; AssociativeWordLocation = -1;
+            PluralPronounLocation = -1;
+
             for(int x =0; x < GetWordCount(); x++){                                                                  // Build pattern string i.e. duvu  4 word sentence
                     Pattern += GetWordType(x);
                     tmpWordType = GetWordType(x);
                     if (tmpWordType == 'n') {NounLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'd') {DeterminerLocation = x; UnderstandingLevel++;}
-                    if (tmpWordType == 'p') {ProNounLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'p') {ProNounOtherLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'y') {ProNounOutwardLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'm') {ProNounInwardLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'g') {AssociativeWordLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'v') {VerbLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'a') {AdjectiveLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'r') {ReplacementLocation = x; UnderstandingLevel++;}
@@ -67,6 +77,7 @@ class c_Cortex : public c_Language
                     if (tmpWordType == 's') {PluralPossessiveLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'D') {DirectObjectLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'I') {IndirectObjectLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'N') {PluralPronounLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'u') {
                             UnknownCount++; UnKnownLocation = x;
                             if(FirstUnknown == -1) FirstUnknown = x;
@@ -91,8 +102,10 @@ class c_Cortex : public c_Language
                 UnderstandingDegree = 0;
             if(Verbose)
              cout << "Pattern: " + Pattern + " Understanding Level:" << UnderstandingLevel << " Ratio:" << UnderstandingRatio<< " Is Question:" << ISQ << " Degree:" << UnderstandingDegree << " Unknown Count:" << UnknownCount << "\n";
-            if(ISQ == true)UnderstandingDegree = 1;             //question trap
-            if(DirectiveLocation >=0)UnderstandingDegree = 2;   //directive trap
+
+            if(ISQ == true)UnderstandingDegree = 1;               //question trap
+            if(DirectiveLocation >=0)UnderstandingDegree = 2;     //directive trap
+            if(PluralPronounLocation >=0)UnderstandingDegree = 3; //plural pronoun trap
             switch (UnderstandingDegree)
             {
                case 0:{  ///All new words, lots of work to do
@@ -141,6 +154,10 @@ class c_Cortex : public c_Language
                     HandleDirective();
                     break;
                }
+               case 3:{ //plural pronoun trap
+                    HandlePluralPronoun(PluralPronounLocation);
+                    break;
+               }
                 case 10:{  ///Only 1 known but could have a ratio of 100%
                    if (Verbose)
                     cout << "Case 10" << endl;
@@ -167,38 +184,7 @@ class c_Cortex : public c_Language
                    if (Verbose)
                     cout << "Case 75" << endl;
                  Handle75LevelUnderstanding();
-                 //todo******
-                 //see if a noun already exist
-                 //see if it matches the tracked subject
 
-//                 SlowSpeak("Hmmm.");
-//                 string tmpUnknown; string tmpSubject; int a,b; int tmpLocation;
-//                 tmpSubject = CurrentSentence.GetWords(SubjectLoc);
-//                 for(int x =0; x < CurrentSentence.GetWordCount(); x++)
-//                    if(CurrentSentence.GetWordType(x)=='u'){
-//                            tmpUnknown = CurrentSentence.GetWords(x);
-//                            tmpLocation = x;}
-//                 if(AdjectiveLocation == -1)a = tmpLocation; else a = AdjectiveLocation;
-//                 SlowSpeak("I think " + CurrentSentence.GetWords(a) + " is describing the " + tmpSubject + ".");
-//                 SlowSpeak(" Am I right?");
-//                 b = RequestUserResponse();
-//                 if(b==1){
-//                    CurrentSentence.SetWordType('a',a);
-//
-//                    CurrentSentence.SetWordType('n',SubjectLoc);
-//                    SlowSpeak("Got it!"); SlowSpeak("Thanks!");
-//                    SlowSpeak("So a " + CurrentSentence.GetWords(a) + " " + tmpSubject + ".");
-//                    SlowSpeak("What else can a " + tmpSubject + " be or do?");
-//                    CurrectSubject.SetSubject(CurrentSentence.GetWordTokens(SubjectLoc),tmpSubject);
-//                    Personality.IncreaseMoodLevel();
-//                 }
-//                 else
-//                 {
-//                     SlowSpeak("Hmmm. I'll get it eventually.");
-//                     SlowSpeak(":(");
-//                     Personality.DecreaseMoodLevel();
-//
-//                 }
                  break;
                 }
                 case 100:{  ///very strong
@@ -319,21 +305,36 @@ int WorkWithHalfLevel(string Pattern, int Determiner){
 }//end work with half level
 //---------------------------------------------------------------------------------------------------------------
 int HandleQuestion(){
+    //***TODO**
+    //check for multi match and handle
+
     if(Verbose){cout << "[c_Cortex.h::HandleQuestion]" << endl;}
     int Control;    Control = -1;
     int MatchedCount;
     string VerbUsed, MatchedAdjective[15];
-    bool Matched;
+    string AnswerString;
+    bool Matched = false;
     if(Verbose)
         cout << "qLoc:" << QuestionLocation << " Pattern:" << Pattern << " SubjectLoc:" << GetSubjectLocation() << endl;
 
-   // Matched = CheckLinkOfTwoNounsWithAdjectives("dog","color",VerbUsed,MatchedAdjective);
-
+   // check for correct form
+    if(GetSubjectLocation() != QuestionLocation + 1)
     Matched = CheckLinkOfTwoNounsWithAdjectives(RightLobeMemory[GetWordTokens(GetSubjectLocation())].GetpCellDataString(),
                                                 RightLobeMemory[GetWordTokens(QuestionLocation+1)].GetpCellDataString(),
                                                 VerbUsed,MatchedAdjective, MatchedCount);
     if (Matched){
-        SlowSpeak("The " + GetWords(GetSubjectLocation())+ " " + VerbUsed + " " + MatchedAdjective[0] + ".");}
+            if(MatchedCount > 1){
+                AnswerString = "The " +  GetWordsLC(QuestionLocation + 1) + " of the "  + GetWords(GetSubjectLocation()) + " can be ";
+                for(int x = 0; x < MatchedCount; x++){
+                        AnswerString = AnswerString + MatchedAdjective[x];
+                        if(!(x+1==MatchedCount)) AnswerString += " or ";}
+                AnswerString += ".";
+                SlowSpeak(AnswerString);
+            }
+            else{
+               SlowSpeak("The " +  GetWordsLC(QuestionLocation + 1) + " of the "  + GetWords(GetSubjectLocation())+ " is " + MatchedAdjective[0] + ".");
+            }
+        }
         else
         SlowSpeak("You haven't told me yet.");
     if(Verbose)
@@ -440,27 +441,26 @@ void Handle75LevelUnderstanding(){
 
 
         if(GetWordTokens(DirectiveLocation) == 2972 | GetWordTokens(DirectiveLocation)==1070){
-            if(Verbose) cout << "compare directive ";
+            if(Verbose) cout << "compare/same directive ";
             //extract determiners 'd' from pattern
             WorkingPattern = Pattern;
             dLoc = WorkingPattern.find('d');
-            while(dLoc >=0 & dLoc <= WorkingPattern.size()){
+            while((dLoc >=0) & (dLoc <= WorkingPattern.size())){
                 WorkingPattern = WorkingPattern.substr(0,dLoc) + WorkingPattern.substr(dLoc+1);
-                dLoc = WorkingPattern.find('d');
+                dLoc = WorkingPattern.find('d');}
 
-            }
-            if((WorkingPattern.find("njn") >= 0 & WorkingPattern.find("njn")<=WorkingPattern.size())) CompareMode = 3;
-            if((WorkingPattern.find("nun") >= 0 & WorkingPattern.find("nun")<=WorkingPattern.size())) CompareMode = 3;
-            if((WorkingPattern.find("aua") >= 0 & WorkingPattern.find("aua")<=WorkingPattern.size())) CompareMode = 1;
-            if((WorkingPattern.find("aja") >= 0 & WorkingPattern.find("aja")<=WorkingPattern.size())) CompareMode = 1;
-            if((WorkingPattern.find("aun") >= 0 & WorkingPattern.find("aun")<=WorkingPattern.size())) CompareMode = 2;
-            if((WorkingPattern.find("ajn") >= 0 & WorkingPattern.find("ajn")<=WorkingPattern.size())) CompareMode = 2;
-            if((WorkingPattern.find("Aua") >= 0 & WorkingPattern.find("Aua")<=WorkingPattern.size())) CompareMode = 4;
-            if((WorkingPattern.find("Aja") >= 0 & WorkingPattern.find("Aja")<=WorkingPattern.size())) CompareMode = 4;
-            if((WorkingPattern.find("AuA") >= 0 & WorkingPattern.find("AuA")<=WorkingPattern.size())) CompareMode = 5;
-            if((WorkingPattern.find("AjA") >= 0 & WorkingPattern.find("AjA")<=WorkingPattern.size())) CompareMode = 5;
-            if((WorkingPattern.find("Aun") >= 0 & WorkingPattern.find("Aun")<=WorkingPattern.size())) CompareMode = 6;
-            if((WorkingPattern.find("Ajn") >= 0 & WorkingPattern.find("Ajn")<=WorkingPattern.size())) CompareMode = 6;
+            if( (WorkingPattern.find("njn") >= 0) & (WorkingPattern.find("njn")<=WorkingPattern.size()) ) CompareMode = 3;
+            if( (WorkingPattern.find("nun") >= 0) & (WorkingPattern.find("nun")<=WorkingPattern.size()) ) CompareMode = 3;
+            if( (WorkingPattern.find("aua") >= 0) & (WorkingPattern.find("aua")<=WorkingPattern.size()) ) CompareMode = 1;
+            if( (WorkingPattern.find("aja") >= 0) & (WorkingPattern.find("aja")<=WorkingPattern.size()) ) CompareMode = 1;
+            if( (WorkingPattern.find("aun") >= 0) & (WorkingPattern.find("aun")<=WorkingPattern.size()) ) CompareMode = 2;
+            if( (WorkingPattern.find("ajn") >= 0) & (WorkingPattern.find("ajn")<=WorkingPattern.size()) ) CompareMode = 2;
+            if( (WorkingPattern.find("Aua") >= 0) & (WorkingPattern.find("Aua")<=WorkingPattern.size()) ) CompareMode = 4;
+            if( (WorkingPattern.find("Aja") >= 0) & (WorkingPattern.find("Aja")<=WorkingPattern.size()) ) CompareMode = 4;
+            if( (WorkingPattern.find("AuA") >= 0) & (WorkingPattern.find("AuA")<=WorkingPattern.size()) ) CompareMode = 5;
+            if( (WorkingPattern.find("AjA") >= 0) & (WorkingPattern.find("AjA")<=WorkingPattern.size()) ) CompareMode = 5;
+            if( (WorkingPattern.find("Aun") >= 0) & (WorkingPattern.find("Aun")<=WorkingPattern.size()) ) CompareMode = 6;
+            if( (WorkingPattern.find("Ajn") >= 0) & (WorkingPattern.find("Ajn")<=WorkingPattern.size()) ) CompareMode = 6;
 
                 switch(CompareMode){
 
@@ -500,6 +500,39 @@ void Handle75LevelUnderstanding(){
 
 
 
+    void DeconstructContractions(){
+    }
+
+
+    void HandlePluralPronoun(int PluralPronounLocation){     // i.e. both
+
+        //**TODO**
+        //Check the word type after PluralPronounLocation
+        // could be adverb
+
+        string Noun1       = "";
+        string Noun2       = "";
+        int NounCount      = 0;
+        int JoinerLocation = 0;
+
+        for(int x = 0; x < GetWordCount(); x++){
+           if(GetWordType(x)=='n'){
+                NounCount++;
+                if(Noun1 =="")Noun1 = GetWordsLC(x); else Noun2 = GetWordsLC(x);}
+            if(GetWordType(x)=='j') JoinerLocation = x;}
+
+
+         if((JoinerLocation >0)&(NounCount==2)){ //two nouns with joiner
+                RightLobeMemory[Tokenize(Noun1)].AccociateAdjective(GetWordTokens(PluralPronounLocation+1));
+                RightLobeMemory[Tokenize(Noun2)].AccociateAdjective(GetWordTokens(PluralPronounLocation+1));
+                SetWordType('a',PluralPronounLocation+1);
+                SlowSpeak("Alright.");
+                SlowSpeak(":)");
+                IncreaseMoodLevel();}
+          else{
+                SlowSpeak(":{");
+                DecreaseMoodLevel();}
+    }
 };
 
 #endif // C_CORTEX_H

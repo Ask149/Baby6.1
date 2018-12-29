@@ -1,10 +1,10 @@
 #ifndef C_PERSONALITY_H
 #define C_PERSONALITY_H
 
-#include <c_Lobes.h>
+#include <c_ShortTermMemory.h>
 
 
-class c_Personality : public c_Lobes
+class c_Personality : public c_ShortTermMemory
 {
     public:
         c_Personality();
