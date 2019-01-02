@@ -60,6 +60,7 @@ class c_Cortex : public c_Language
             for(int x =0; x < GetWordCount(); x++){                                                                  // Build pattern string i.e. duvu  4 word sentence
                     Pattern += GetWordType(x);
                     tmpWordType = GetWordType(x);
+                    if (tmpWordType == 't') {UnderstandingLevel++;}
                     if (tmpWordType == 'n') {NounLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'd') {DeterminerLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'p') {ProNounOtherLocation = x; UnderstandingLevel++;}
@@ -318,13 +319,14 @@ int HandleQuestion(){
         cout << "qLoc:" << QuestionLocation << " Pattern:" << Pattern << " SubjectLoc:" << GetSubjectLocation() << endl;
 
    // check for correct form
-    if(GetSubjectLocation() != QuestionLocation + 1)
-    Matched = CheckLinkOfTwoNounsWithAdjectives(RightLobeMemory[GetWordTokens(GetSubjectLocation())].GetpCellDataString(),
-                                                RightLobeMemory[GetWordTokens(QuestionLocation+1)].GetpCellDataString(),
+   //actually need to compare indirect object to subject
+    if(GetIndirectObjectLocation() != -1)
+    Matched = CheckLinkOfTwoNounsWithAdjectives(RightLobeMemory[GetWordTokens(GetIndirectObjectLocation())].GetpCellDataString(),
+                                                RightLobeMemory[GetWordTokens(GetSubjectLocation())].GetpCellDataString(),
                                                 VerbUsed,MatchedAdjective, MatchedCount);
     if (Matched){
             if(MatchedCount > 1){
-                AnswerString = "The " +  GetWordsLC(QuestionLocation + 1) + " of the "  + GetWords(GetSubjectLocation()) + " can be ";
+                AnswerString = "The " +  GetWordsLC(GetSubjectLocation()) + " of the "  + GetWords(GetIndirectObjectLocation()) + " can be ";
                 for(int x = 0; x < MatchedCount; x++){
                         AnswerString = AnswerString + MatchedAdjective[x];
                         if(!(x+1==MatchedCount)) AnswerString += " or ";}
@@ -332,7 +334,7 @@ int HandleQuestion(){
                 SlowSpeak(AnswerString);
             }
             else{
-               SlowSpeak("The " +  GetWordsLC(QuestionLocation + 1) + " of the "  + GetWords(GetSubjectLocation())+ " is " + MatchedAdjective[0] + ".");
+               SlowSpeak("The " +  GetWordsLC(GetSubjectLocation()) + " of the "  + GetWords(GetIndirectObjectLocation())+ " is " + MatchedAdjective[0] + ".");
             }
         }
         else
@@ -356,10 +358,10 @@ void Handle75LevelUnderstanding(){
         cout << "  Verb Location:" << VerbLocation << endl;}
 
 
-   while(Testing & (NounLocation >=0)){   //no noun! How to handle this Kenzie??  she says if pronoun use it as noun and subject
+   while(Testing && (NounLocation >=0)){   //no noun! How to handle this Kenzie??  she says if pronoun use it as noun and subject
 
     //----------Missing Noun Test------
-    if((NounLocation == -1) & (VerbLocation >=0) & (DeterminerLocation >=0) & (AdjectiveLocation >=0)){ //no noun but has verb, determiner and adjective
+    if((NounLocation == -1) && (VerbLocation >=0) && (DeterminerLocation >=0) && (AdjectiveLocation >=0)){ //no noun but has verb, determiner and adjective
         SlowSpeak("So " + GetWords(DeterminerLocation+1)+ " can be " + GetWords(AdjectiveLocation) + "?");
         UserResponse = RequestUserResponse();
         if(UserResponse == 1){
@@ -440,7 +442,7 @@ void Handle75LevelUnderstanding(){
         if(Verbose)cout << "[c_Cortex.h::Directive Trap] Pattern:" << Pattern << " ";
 
 
-        if(GetWordTokens(DirectiveLocation) == 2972 | GetWordTokens(DirectiveLocation)==1070){
+        if((GetWordTokens(DirectiveLocation) == 2972) || (GetWordTokens(DirectiveLocation)==1070)){
             if(Verbose) cout << "compare/same directive ";
             //extract determiners 'd' from pattern
             WorkingPattern = Pattern;
@@ -449,25 +451,25 @@ void Handle75LevelUnderstanding(){
                 WorkingPattern = WorkingPattern.substr(0,dLoc) + WorkingPattern.substr(dLoc+1);
                 dLoc = WorkingPattern.find('d');}
 
-            if( (WorkingPattern.find("njn") >= 0) & (WorkingPattern.find("njn")<=WorkingPattern.size()) ) CompareMode = 3;
-            if( (WorkingPattern.find("nun") >= 0) & (WorkingPattern.find("nun")<=WorkingPattern.size()) ) CompareMode = 3;
-            if( (WorkingPattern.find("aua") >= 0) & (WorkingPattern.find("aua")<=WorkingPattern.size()) ) CompareMode = 1;
-            if( (WorkingPattern.find("aja") >= 0) & (WorkingPattern.find("aja")<=WorkingPattern.size()) ) CompareMode = 1;
-            if( (WorkingPattern.find("aun") >= 0) & (WorkingPattern.find("aun")<=WorkingPattern.size()) ) CompareMode = 2;
-            if( (WorkingPattern.find("ajn") >= 0) & (WorkingPattern.find("ajn")<=WorkingPattern.size()) ) CompareMode = 2;
-            if( (WorkingPattern.find("Aua") >= 0) & (WorkingPattern.find("Aua")<=WorkingPattern.size()) ) CompareMode = 4;
-            if( (WorkingPattern.find("Aja") >= 0) & (WorkingPattern.find("Aja")<=WorkingPattern.size()) ) CompareMode = 4;
-            if( (WorkingPattern.find("AuA") >= 0) & (WorkingPattern.find("AuA")<=WorkingPattern.size()) ) CompareMode = 5;
-            if( (WorkingPattern.find("AjA") >= 0) & (WorkingPattern.find("AjA")<=WorkingPattern.size()) ) CompareMode = 5;
-            if( (WorkingPattern.find("Aun") >= 0) & (WorkingPattern.find("Aun")<=WorkingPattern.size()) ) CompareMode = 6;
-            if( (WorkingPattern.find("Ajn") >= 0) & (WorkingPattern.find("Ajn")<=WorkingPattern.size()) ) CompareMode = 6;
+            if( (WorkingPattern.find("njn") >= 0) && (WorkingPattern.find("njn")<=WorkingPattern.size()) ) CompareMode = 3;
+            if( (WorkingPattern.find("nun") >= 0) && (WorkingPattern.find("nun")<=WorkingPattern.size()) ) CompareMode = 3;
+            if( (WorkingPattern.find("aua") >= 0) && (WorkingPattern.find("aua")<=WorkingPattern.size()) ) CompareMode = 1;
+            if( (WorkingPattern.find("aja") >= 0) && (WorkingPattern.find("aja")<=WorkingPattern.size()) ) CompareMode = 1;
+            if( (WorkingPattern.find("aun") >= 0) && (WorkingPattern.find("aun")<=WorkingPattern.size()) ) CompareMode = 2;
+            if( (WorkingPattern.find("ajn") >= 0) && (WorkingPattern.find("ajn")<=WorkingPattern.size()) ) CompareMode = 2;
+            if( (WorkingPattern.find("Aua") >= 0) && (WorkingPattern.find("Aua")<=WorkingPattern.size()) ) CompareMode = 4;
+            if( (WorkingPattern.find("Aja") >= 0) && (WorkingPattern.find("Aja")<=WorkingPattern.size()) ) CompareMode = 4;
+            if( (WorkingPattern.find("AuA") >= 0) && (WorkingPattern.find("AuA")<=WorkingPattern.size()) ) CompareMode = 5;
+            if( (WorkingPattern.find("AjA") >= 0) && (WorkingPattern.find("AjA")<=WorkingPattern.size()) ) CompareMode = 5;
+            if( (WorkingPattern.find("Aun") >= 0) && (WorkingPattern.find("Aun")<=WorkingPattern.size()) ) CompareMode = 6;
+            if( (WorkingPattern.find("Ajn") >= 0) && (WorkingPattern.find("Ajn")<=WorkingPattern.size()) ) CompareMode = 6;
 
                 switch(CompareMode){
 
                     case 3: //noun to noun
                         {
                             for(int x =0; x < GetWordCount(); x++){
-                                if((GetWordType(x)=='n')&(Noun1 == "")) Noun1 = GetWordsLC(x);
+                                if((GetWordType(x)=='n')&&(Noun1 == "")) Noun1 = GetWordsLC(x);
                                 else
                                     if(GetWordType(x)=='n') Noun2 = GetWordsLC(x);}
 

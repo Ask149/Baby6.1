@@ -159,6 +159,24 @@ class c_Lobes
           return Result;
     }
 
+
+    void SavePreAndPostPatternConstruction(string PreConstructionPattern,string PostConstructionPattern){
+
+        int PreToken  = Tokenize(PreConstructionPattern);
+        int PostToken = Tokenize(PostConstructionPattern);
+
+        LeftLobeMemory[PreToken].SetpCellDataString(PreConstructionPattern);
+        LeftLobeMemory[PreToken].SetpCellPurpose('1');    // pattern storage
+        LeftLobeMemory[PreToken].SetpToken(PreToken);
+        LeftLobeMemory[PreToken].SetPointerToNextPattern(PostToken);
+
+        LeftLobeMemory[PostToken].SetpCellDataString(PostConstructionPattern);
+        LeftLobeMemory[PostToken].SetpCellPurpose('1');    //pattern storage
+        LeftLobeMemory[PostToken].SetpToken(PostToken);
+        LeftLobeMemory[PostToken].SetPointerToNextPattern(PostToken);
+
+        LeftLobeUsageCount += 2;
+    }
 };
 
 #endif // C_LOBES_H

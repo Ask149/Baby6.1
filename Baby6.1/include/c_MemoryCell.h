@@ -20,6 +20,7 @@ class c_MemoryCell
                                    // n-noun p-pronoun v-verb q-question word a-adjective r-subject replacement P(cap) ProperNoun i.e. name A(cap) Adverb D(cap) Direct Object I(LC) Indirect object
                                    // s - plural possessive  X(cap) Directive j-joining word
                                    // initialize to 'u'
+        char WordTense;            // p-past c-present f-future s-plural
                                    // the decision on this word type is made elsewhere
         char SecondaryType;        // Could be used as another type i.e. light-n light red - A box is light -a
         char AlternateType;        // some words without modification could have a third type (All type references conform to pWordType definitions)
@@ -31,10 +32,15 @@ class c_MemoryCell
         int  AdjectiveList[15][4]; // points to linked adjectives with verbs [0][0] = Adjective [0][1]..[0][3] = verbs
         int  AdjectiveCount;       // the number of adjectives here
         int  pToken;               // the token value of this data
+        int  PointerToNextPattern; // if used as pattern storage, points to constructed pattern
 
 
 
     public:
+        int    GetPointerToNextPattern(){return PointerToNextPattern;}
+        void   SetPointerToNextPattern(int NextPattern){PointerToNextPattern = NextPattern;}
+        char   GetWordTense() {return WordTense;}
+        void   SetWordTense(char newTense){WordTense = newTense;}
         int    GetAdjectiveCount(){return AdjectiveCount;}
         char   GetSecondaryType(){return SecondaryType;}
         void   SetSecondaryType(char Type){SecondaryType = Type;}

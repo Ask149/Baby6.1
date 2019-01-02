@@ -18,6 +18,7 @@ class c_Sentence : public c_SubjectStack
         int    WordTokens[30];                  // dog = 625 initialize to 0
         bool   isContraction[30];               // true / false  initialize to false  initialize to ""
         int    QuoteLocation[30];               // "can't" set to 3 for this, set to -1 for "dog"
+        int    IndirectObjectLocation;          // usually the second noun
         string Words[30];                       // Dog  i.e. original unedited word  initialize to ""
         string WordsLC[30];                     // dog  initialize to ""
         string SubWords[30];                    // replacement words, usually from subject stack
@@ -53,9 +54,12 @@ class c_Sentence : public c_SubjectStack
                 Pattern                    = "";
                 HasPluralPronoun           = false;
                 HasPunctuation             = false;
-                IsQuestion                 = false;}
+                IsQuestion                 = false;
+                IndirectObjectLocation     = -1;}
 
     public:
+        int    GetIndirectObjectLocation(){return IndirectObjectLocation;}
+        void   SetIndirectObjectLocation(int NewVal){IndirectObjectLocation = NewVal;}
         bool   GetHasPluralPronoun(){return HasPluralPronoun;}
         void   SetHasPluralPronoun(bool newVal){HasPluralPronoun = newVal;}
         char   GetSecondaryType(int Location){return SecondaryType[Location];}

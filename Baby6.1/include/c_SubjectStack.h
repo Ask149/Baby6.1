@@ -20,6 +20,14 @@ class c_SubjectStack :  public c_Personality  //public c_Language
 
         void SetSubject (int Subject,string strSubject)  //Push down old subjects
         {
+            for(int x = 0; x< 15; x++)                      //swap to front if been here before
+            if(Subjects[x]== Subject){
+                tmpSubject     = Subjects[0];               //matched so swap to the front as the active subject
+                strTmpSubject  = strSubjects[0];
+                Subjects[0]    = Subject;
+                strSubjects[0] = strSubject;
+                Subjects[x]    = tmpSubject;                //move the old front subject to this place
+                strSubjects[x] = strTmpSubject;}
             if(Subjects[0] != Subject){                     //no move down if already current
                     tmpSubject = Subjects[1];
                     strTmpSubject = strSubjects[1];
@@ -30,9 +38,11 @@ class c_SubjectStack :  public c_Personality  //public c_Language
                 Subjects[0] = Subject;
                 strSubjects[0] = strSubject;
                 SubjectCount++;
-                if(SubjectCount > 15) SubjectCount = 15;
-            }
+                if(SubjectCount > 15) SubjectCount = 15;}
         }
+
+
+
         int GetSubject(int Place)    //0 = current
         {
             return Subjects[Place];

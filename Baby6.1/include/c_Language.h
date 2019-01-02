@@ -44,6 +44,7 @@ class c_Language : public c_Sentence
         Possible exception~ The cat is fast and the dog is too.  The joining word 'and' would trigger this routine to match dog and fast as the same word types
 
     */
+    CorrectedPattern = Pattern;
     JoinerLocation = Pattern.find("j");
     if((JoinerLocation >=0) & (JoinerLocation < Pattern.size())){
         LeftOfJoiner = Pattern.substr(JoinerLocation + LeftOfJoinerLocation,1);
@@ -56,39 +57,48 @@ class c_Language : public c_Sentence
 
         }
         else
-            if(LeftOfJoiner == "u") LeftOfJoiner = RightOfJoiner;  //assume left is same as right
+            if(LeftOfJoiner == "u") LeftOfJoiner = RightOfJoiner;                             //assume left is same as right
                 else
-                    RightOfJoiner = LeftOfJoiner;                  //assume right is same as left
+                    if(RightOfJoiner == "u" )  RightOfJoiner = LeftOfJoiner;                  //assume right is same as left. the tests for unknowns prevents matching dissimilar types
 
-    CorrectedPattern = Pattern;
+
     CorrectedPattern[JoinerLocation + LeftOfJoinerLocation]  = LeftOfJoiner[0];
     CorrectedPattern[JoinerLocation + RightOfJoinerLocation] = RightOfJoiner[0];
     }
+   /*  Check for stored pattern
+       and if it has a solution
+       pull it into CorrectPattern
+   */
 
-    if(Pattern == "duvu"){
-        CorrectedPattern = "dnvu";
+    if(LeftLobeMemory[Tokenize(CorrectedPattern)].GetpIsSet() == true){                     //seen this pattern before
+        CorrectedPattern = LeftLobeMemory[LeftLobeMemory[Tokenize(Pattern)].GetPointerToNextPattern()].GetpCellDataString();
         ConfidenceLevel = 100;}
-    if(Pattern == "dun"){
-        CorrectedPattern = "dan";
-        ConfidenceLevel = 100;}
-    if(Pattern == "duva"){
-        CorrectedPattern = "dnva";
-        ConfidenceLevel = 100;}
-    if(Pattern == "uuv"){
-        CorrectedPattern = "dnv";
-        ConfidenceLevel = 100;}
-    if(Pattern == "dvdun"){
-        CorrectedPattern = "dvdan";
-        ConfidenceLevel = 100;}
-    if(Pattern == "dvdu"){
-        CorrectedPattern = "dvdn";
-        ConfidenceLevel = 100;}
-    if(Pattern == "dnup"){
-        CorrectedPattern = "dnvp";
-        ConfidenceLevel = 100;}
-    if(Pattern == "avdu"){
-        CorrectedPattern = "avdn";
-        ConfidenceLevel = 100;}
+    else{
+            if(Pattern == "duvu"){
+                CorrectedPattern = "dnvu";
+                ConfidenceLevel = 100;}
+            if(Pattern == "dun"){
+                CorrectedPattern = "dan";
+                ConfidenceLevel = 100;}
+            if(Pattern == "duva"){
+                CorrectedPattern = "dnva";
+                ConfidenceLevel = 100;}
+            if(Pattern == "uuv"){
+                CorrectedPattern = "dnv";
+                ConfidenceLevel = 100;}
+            if(Pattern == "dvdun"){
+                CorrectedPattern = "dvdan";
+                ConfidenceLevel = 100;}
+            if(Pattern == "dvdu"){
+                CorrectedPattern = "dvdn";
+                ConfidenceLevel = 100;}
+            if(Pattern == "dnup"){
+                CorrectedPattern = "dnvp";
+                ConfidenceLevel = 100;}
+            if(Pattern == "avdu"){
+                CorrectedPattern = "avdn";
+                ConfidenceLevel = 100;}
+          }
 
      if(Verbose)cout << " Received Pattern:" << Pattern << " Correct Pattern:" << CorrectedPattern << endl;
    return CorrectedPattern;
@@ -119,7 +129,9 @@ class c_Language : public c_Sentence
            string JoiningWords =        " and ";
            string AssociativeWord =     " name name's ";
            string PluralPronoun =       " both ";
+           string ThrowAwayWords =      " of also ";
 
+           int isThrowAwayWord   = -1;
            int isPluralPronoun   = -1;
            int isDirective       = -1;
            int isDeterminer      = -1;
@@ -140,6 +152,7 @@ class c_Language : public c_Sentence
               OrigWord = tmpWord;
               tmpWord = " " + tmpWord + " ";
 
+                isThrowAwayWord     = ThrowAwayWords.find(tmpWord);
                 isPluralPronoun     = PluralPronoun.find(tmpWord);
                 isJoiner            = JoiningWords.find(tmpWord);
                 isDirective         = Directives.find(tmpWord);
@@ -178,6 +191,8 @@ class c_Language : public c_Sentence
                   if (isPluralPronoun >=0){
                         tmpWordType = 'N';
                         SetHasPluralPronoun(true);}
+                  if (isThrowAwayWord >=0){
+                        tmpWordType = 't';}
             if(Verbose)
                 cout << "tmpWord " << tmpWord <<" type:" << tmpWordType << endl;
             return tmpWordType;
@@ -211,8 +226,8 @@ int RequestUserResponse()
     string PositiveResponse;
     string NegativeResponse;
     string Response; Response = "";
-    PositiveResponse = " yes Yes OK ok Ok correct Correct right Right Exactly exactly ";
-    NegativeResponse = " No no wrong Wrong What what ";
+    PositiveResponse = " yes Yes OK ok Ok correct Correct right Right Exactly exactly ye ";
+    NegativeResponse = " No no wrong Wrong What what n ";
     while (Response == ""){
         cout << ">>>";
         getline (cin,Response);}
