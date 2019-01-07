@@ -43,7 +43,7 @@ class c_SubjectStack :  public c_Personality  //public c_Language
 
 
 
-        int GetSubject(int Place)    //0 = current
+        int GetSubject(int Place=0)    //0 = current
         {
             return Subjects[Place];
         }

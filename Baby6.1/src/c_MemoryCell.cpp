@@ -21,6 +21,10 @@ c_MemoryCell::c_MemoryCell()
             AdjectiveList[x][2]=0;
             AdjectiveList[x][3]=0;}
     AdjectiveCount = 0;
+    advDescriptors.clear();
+    verbDescriptors.clear();
+    adjDescriptors.clear();
+    PointerToNextPattern = 0;
 }
 
 c_MemoryCell::~c_MemoryCell()

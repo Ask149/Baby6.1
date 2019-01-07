@@ -88,9 +88,7 @@ class c_Lobes
                             cout << "Storing -->" << NewWord << " at " << tmpToken << " as WordType:" << WordType << endl;
 
                         RightLobeUsageCount++;}
-                    else
-                        if(Verbose)
-                             cout << "Not Storing -->" << NewWord << " at " << tmpToken << " as WordType:" << WordType << endl;
+
                     else
                         if(Update){
                             RightLobeMemory[tmpToken].SetpCellDataString(NewWord);
@@ -100,12 +98,15 @@ class c_Lobes
                             if(Verbose)
                                 cout << "Updating -->" << NewWord << " at " << tmpToken << " as WordType:" << WordType << endl;
                         }
+                        else
+                            if(Verbose)
+                             cout << "Not Storing -->" << NewWord << " at " << tmpToken << " as WordType:" << WordType << endl;
             }
         }
 
 
 
-        int Tokenize (string str_Data)
+        int Tokenize (string str_Data,bool ForceLowerCase = true)
         {
             int z;
             int y;
@@ -115,12 +116,16 @@ class c_Lobes
                 z = str_Data.size();
                 PlaceValue = 1;
                 tmpToken = 0;
-                for( y = z; y > 0; y--)
-                {
+                if(ForceLowerCase){
+                for( y = z; y > 0; y--){
                     tmpToken = tmpToken + (int(tolower(str_Data[y-1])))*PlaceValue;
+                    PlaceValue ++;}}
+                  else {
+                    for( y = z; y > 0; y--){
+                    tmpToken = tmpToken + (int(str_Data[y-1]))*PlaceValue;
+                    PlaceValue ++;}
+                  }
 
-                    PlaceValue ++;
-                }
             return tmpToken;
 
         }
@@ -162,8 +167,8 @@ class c_Lobes
 
     void SavePreAndPostPatternConstruction(string PreConstructionPattern,string PostConstructionPattern){
 
-        int PreToken  = Tokenize(PreConstructionPattern);
-        int PostToken = Tokenize(PostConstructionPattern);
+        int PreToken  = Tokenize(PreConstructionPattern,false);
+        int PostToken = Tokenize(PostConstructionPattern,false);
 
         LeftLobeMemory[PreToken].SetpCellDataString(PreConstructionPattern);
         LeftLobeMemory[PreToken].SetpCellPurpose('1');    // pattern storage
@@ -177,6 +182,36 @@ class c_Lobes
 
         LeftLobeUsageCount += 2;
     }
+
+    int L_GetNumberOfAdjectivesInMap(int CellAddress){return RightLobeMemory[CellAddress].GetNumberOfAdjectivesInMap();}
+    int L_GetNumberOfVerbsInMap(int CellAddress){return RightLobeMemory[CellAddress].GetNumberOfVerbsInMap();}
+    int L_GetNumberOfAdverbsInMap(int CellAddress){return RightLobeMemory[CellAddress].GetNumberOfAdverbsInMap();}
+    int L_GetNumberOfRelatedNounsInMap(int CellAddress){return RightLobeMemory[CellAddress].GetNumberOfRelatedNounsInMap();}
+    void L_AssociateAdjectiveInMap(string AdjectiveToAssociate,int CellAddress){RightLobeMemory[CellAddress].AssociateAdjectiveInMap(AdjectiveToAssociate);}
+    void L_AssociateVerbToAdjectiveInMap(string AdjectiveToAssociate, string VerbToAssociate,int CellAddress){RightLobeMemory[CellAddress].AssociateVerbToAdjectiveInMap(AdjectiveToAssociate, VerbToAssociate);}
+    void L_AssociateAdverbToVerbInMap(string AdverbToAssociate,string VerbToAssociate,int CellAddress){RightLobeMemory[CellAddress].AssociateAdverbToVerbInMap( AdverbToAssociate,VerbToAssociate);}
+    string L_GetAdjective(int CellAddress,int Location){
+         int AdjectiveToken = RightLobeMemory[CellAddress].GetAdjectiveFromMap(Location);
+          return RightLobeMemory[AdjectiveToken ].GetpCellDataLC(); }
+
+    string L_GetVerb(int CellAddress,int Location){
+         int VerbToken = RightLobeMemory[CellAddress].GetVerbFromMap(Location);
+          return RightLobeMemory[VerbToken].GetpCellDataLC(); }
+
+    string L_GetAdverb(int CellAddress,int Location){
+         int AdverbToken = RightLobeMemory[CellAddress].GetAdverbFromMap(Location);
+          return RightLobeMemory[AdverbToken].GetpCellDataLC(); }
+
+    void L_AssociateNounToNoun(string BaseNoun, string RelatedNoun){
+         RightLobeMemory[Tokenize(BaseNoun)].AssociateNounInMap(RelatedNoun);}
+
+    bool L_CheckForRelatedNoun(string BaseNoun, string NounToCheck){
+         return RightLobeMemory[Tokenize(BaseNoun)].IsNounRelatedToMe(NounToCheck);}
+
+    string L_GetRelatedNoun(int CellAddress,int Location){
+         int NounToken = RightLobeMemory[CellAddress].GetNounFromMap(Location);
+          return RightLobeMemory[NounToken].GetpCellDataLC(); }
+
 };
 
 #endif // C_LOBES_H

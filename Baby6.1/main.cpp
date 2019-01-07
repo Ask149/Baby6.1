@@ -19,15 +19,14 @@ cout << ">>";
 getline (cin,Raw_Sentence);
 while (Raw_Sentence != "end")
 {
-    Brain.ProcessUserInput(Raw_Sentence);
-
-    if(Raw_Sentence != "end")
-    {
     if(Verbose)cout << "[main.cpp]\n";
-    cout << ">>";
-    Raw_Sentence = "";
-    getline(cin,Raw_Sentence);
-    }
+    if(Raw_Sentence != ""){
+       Brain.ProcessUserInput(Raw_Sentence);}
+
+    if(Raw_Sentence != "end"){
+        cout << ">>";
+        Raw_Sentence = "";
+        getline(cin,Raw_Sentence);}
 }
     return 0;
 }

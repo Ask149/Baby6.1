@@ -19,6 +19,7 @@ class c_Sentence : public c_SubjectStack
         bool   isContraction[30];               // true / false  initialize to false  initialize to ""
         int    QuoteLocation[30];               // "can't" set to 3 for this, set to -1 for "dog"
         int    IndirectObjectLocation;          // usually the second noun
+        int    AdverbLocation;                  // -1 means none
         string Words[30];                       // Dog  i.e. original unedited word  initialize to ""
         string WordsLC[30];                     // dog  initialize to ""
         string SubWords[30];                    // replacement words, usually from subject stack
@@ -55,6 +56,7 @@ class c_Sentence : public c_SubjectStack
                 HasPluralPronoun           = false;
                 HasPunctuation             = false;
                 IsQuestion                 = false;
+                AdverbLocation             = -1;
                 IndirectObjectLocation     = -1;}
 
     public:
@@ -86,6 +88,11 @@ class c_Sentence : public c_SubjectStack
         string GetPattern(){return Pattern;}
         bool   GetisContraction(int Location){return isContraction[Location];}
         int    GetQuoteLocation(int Location){return QuoteLocation[Location];}
+        int    GetAdverbLocation(){
+          for(int x =0; x < WordCount; x++){
+            if(WordType[x]=='A')AdverbLocation = x;}
+            return AdverbLocation;
+          }
 
 
 
@@ -105,6 +112,7 @@ class c_Sentence : public c_SubjectStack
             return VerbLoc;
             }
 
+//----------------------PARSE---------------------------------------------------------------------------------------------------------
         void Parse (string str_Sentence_Data)
 {
     //----------------------Initialize-------------------------------------------------------------------------------------------------

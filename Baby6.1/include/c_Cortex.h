@@ -38,6 +38,7 @@ class c_Cortex : public c_Language
             int IndirectObjectLocation;
             int PluralPossessiveLocation;
             int PluralPronounLocation;
+            int ProperNounLocation;
             float UnderstandingRatio;
             bool ISQ;
 
@@ -55,7 +56,7 @@ class c_Cortex : public c_Language
             AdverbLocation = -1; DirectiveLocation = -1; JoinerLocation = -1;
             DirectObjectLocation = -1; IndirectObjectLocation = -1; PluralPossessiveLocation = -1;
             ProNounInwardLocation = -1; ProNounOutwardLocation = -1; AssociativeWordLocation = -1;
-            PluralPronounLocation = -1;
+            PluralPronounLocation = -1; ProperNounLocation = -1;
 
             for(int x =0; x < GetWordCount(); x++){                                                                  // Build pattern string i.e. duvu  4 word sentence
                     Pattern += GetWordType(x);
@@ -74,6 +75,7 @@ class c_Cortex : public c_Language
                     if (tmpWordType == 'C') {ContractionLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'A') {AdverbLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'X') {DirectiveLocation = x; UnderstandingLevel++;}
+                    if (tmpWordType == 'P') {ProperNounLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'j') {JoinerLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 's') {PluralPossessiveLocation = x; UnderstandingLevel++;}
                     if (tmpWordType == 'D') {DirectObjectLocation = x; UnderstandingLevel++;}
@@ -147,58 +149,56 @@ class c_Cortex : public c_Language
                  break;
                }
                case 1:{ //question trap
+                   QuestionSentenceBreakDown();
                    HandleQuestion();
-                   break;
+                   break;}
 
-               }
                case 2:{ //directive trap
                     HandleDirective();
-                    break;
-               }
+                    break;}
+
                case 3:{ //plural pronoun trap
                     HandlePluralPronoun(PluralPronounLocation);
-                    break;
-               }
+                    break;}
+
                 case 10:{  ///Only 1 known but could have a ratio of 100%
                    if (Verbose)
                     cout << "Case 10" << endl;
 
                  SlowSpeak("I'm going to have to work on this.");
-                 break;
-                }
+                 break;}
+
                 case 25:{  ///Some understanding but depends on ratio
                    if (Verbose)
                     cout << "Case 25" << endl;
 
                  SlowSpeak("I don't know "  + GetWords(FirstUnknown)+"?");
-                 break;
-                }
+                 break;}
+
                 case 50:{  ///stronger understanding but also depends on ratio
                    if (Verbose)
                     cout << "Case 50" << endl;
-
-
                  WorkWithHalfLevel(Pattern,DeterminerLocation);
-                 break;
-                }
+                 break;}
+
                 case 75:{  ///Much stronger
                    if (Verbose)
                     cout << "Case 75" << endl;
                  Handle75LevelUnderstanding();
+                 break;}
 
-                 break;
-                }
                 case 100:{  ///very strong
                    if (Verbose)
                     cout << "Case 100" << endl;
                     string tmpSubject;
-                    tmpSubject = GetWords(SubjectLoc);
-                    SetSubject(GetWordTokens(SubjectLoc),tmpSubject);
+                 tmpSubject = GetWords(SubjectLoc);
+                 SetSubject(GetWordTokens(SubjectLoc),tmpSubject);
+                 if(GetWordType(GetSubjectLocation())=='p'){
+                    CheckForImpliedGender();}
                  SlowSpeak("Okay.");
                  IncreaseMoodLevel();
                  SlowSpeak(":)");
-                 break;
-                }
+                 break;}
 
             }
 
@@ -349,6 +349,9 @@ int HandleQuestion(){
 //--------------------------------HANDLE75LEVELUNDERSTANDING-------------------------------------------------------
 void Handle75LevelUnderstanding(){
     bool Testing; Testing = true;
+    int localVerbLocation = -1;
+    int localUnknownLocation = -1;
+
     if(Verbose){
         cout << "c_Cortex.h::Handle75LevelUnderstanding\n";
         cout << "  Pattern:" << Pattern << endl;
@@ -371,8 +374,41 @@ void Handle75LevelUnderstanding(){
             Testing = false;
             break;}
     }
+    else{
+        if( (NounLocation == -1) && (VerbLocation >=0) && (DeterminerLocation >=0) ){    // no noun but has verb and determiner
+            SlowSpeak(" Are we talking about a" + GetWords(DeterminerLocation+1) + "?");
+            UserResponse = RequestUserResponse();
+            if(UserResponse == 1){
+                SetWordType('n',DeterminerLocation+1);
+                SetSubjectLocation(DeterminerLocation+1);
+                SlowSpeak(":)");
+                IncreaseMoodLevel();
+                Testing = false;
+                break;}
+            }
+    }
+
 
     //------End Missing noun test------
+
+
+    // --TEST FOR MISSING VERB--------------
+    for(int x= 0; x < GetWordCount(); x++){
+        if(GetWordType(x)=='v') localVerbLocation = x;
+        if(GetWordType(x)=='u') localUnknownLocation =x;}
+
+    if(localVerbLocation == -1 ){
+        if(UnKnownLocation != -1){
+            SetWordType('v',UnKnownLocation);
+            Testing = false;
+            SlowSpeak("Okay.");
+            break;
+        }
+    }
+
+
+
+    //--END TEST FOR MISSING VERB ----------
 
     //-------Modifier Test-------------
     int tmpLocation; tmpLocation = Pattern.find("uav");
@@ -401,6 +437,28 @@ void Handle75LevelUnderstanding(){
 
     //-------End Modifier test---------
 
+
+
+    //-------Noun to Noun test---------
+    //i.e. the dog is an animal
+
+    tmpLocation = Pattern.find("nvdu") + Pattern.find("uvdn") + 1;  //if one .find returns -1 it is removed with the +1, if both return -1, the +1 results in -1
+    if (tmpLocation>=0){
+        SlowSpeak("Okay. Tell me more about " + GetWordsLC(tmpLocation+2) + " " + GetWordsLC(tmpLocation+3) + ".");
+        SetWordType('n',tmpLocation+3);
+        SetWordType('n',tmpLocation);
+        L_AssociateNounToNoun(GetWordsLC(tmpLocation),GetWordsLC(tmpLocation+3));       //associate first noun to second noun
+        L_AssociateNounToNoun(GetWordsLC(tmpLocation+3),GetWordsLC(tmpLocation));       //associate second noun to first noun
+        FindSubject();                                                                  //Update subject
+        SetSubject(GetWordTokens(GetSubjectLocation()),GetWords(GetSubjectLocation())); //update subject stack
+        CheckForImpliedName();
+        Testing = false;
+        break;
+    }
+    //---------End Noun to noun test----------
+
+
+
     //----------Adjective Test---------
 
     SlowSpeak( "A " + GetWords(UnKnownLocation) + " " + GetWords(NounLocation) + "?");
@@ -423,7 +481,10 @@ void Handle75LevelUnderstanding(){
     SlowSpeak("A " + GetWords(UnKnownLocation) + " " + GetWords(AdjectiveLocation) + " " + GetWords(GetSubjectLocation()) + "?");
     UserResponse = RequestUserResponse();
 
-    //-- END TESTING FOR ADVERB -----------
+
+    Testing = false;
+    break;
+    //-- END TESTING FOR ADVERB ------------
 
 
 
@@ -440,6 +501,7 @@ void Handle75LevelUnderstanding(){
         string Noun1,Noun2,VerbUsage,MatchedAdjective[15],WorkingPattern, ResponseString;
         Noun1 = ""; Noun2 = "";
         if(Verbose)cout << "[c_Cortex.h::Directive Trap] Pattern:" << Pattern << " ";
+
 
 
         if((GetWordTokens(DirectiveLocation) == 2972) || (GetWordTokens(DirectiveLocation)==1070)){
@@ -486,17 +548,25 @@ void Handle75LevelUnderstanding(){
                                  SlowSpeak(ResponseString);
                                  SlowSpeak(":)");}
                               else{
+
+                                 if(L_CheckForRelatedNoun(Noun1,Noun2)){
+                                    SlowSpeak("A " + Noun1 + " is a " + Noun2 + ".");}
+                                 else{
                                  SlowSpeak("I don't know anything alike between " + Noun2 + " and " + Noun1 + ".");
-                                 SlowSpeak(":(");}
+                                 SlowSpeak(":(");}}
                         }
 
+                    default:
+                        if(Verbose) cout << "\n";
                 }
 
 
 
         }
+        else{  //not compare/same directive
+          if(Verbose) cout << "\n";}
 
-
+        if(ISQ) QuestionSentenceBreakDown();
 
     }
 
@@ -535,6 +605,108 @@ void Handle75LevelUnderstanding(){
                 SlowSpeak(":{");
                 DecreaseMoodLevel();}
     }
+
+//--------------------Question Sentence Break Down----------------------------------------------------------
+    void QuestionSentenceBreakDown(){
+        int QuestionMode = -1;
+        int PatternMatch = 0;
+        int DirectionOfQuestion = 4;
+        string WorkingPattern = GetPattern();
+
+        PatternMatch = WorkingPattern.find("vmv");      //i.e. do you know
+        if (PatternMatch >=0){
+            DirectionOfQuestion = 0;}
+        PatternMatch = WorkingPattern.find("qdnv") + WorkingPattern.find("qvdn") + 1;
+        if (PatternMatch >= 0){
+            DirectionOfQuestion = 2;}
+
+        switch (DirectionOfQuestion){
+
+            case 0: {
+                if(Verbose)
+                    cout << "[c_Cortex::QuestionSentenceBreakDown()] Question direction toMe\n";
+                break;}
+            case 1: {
+                if(Verbose)
+                    cout << "[c_Cortex::QuestionSentenceBreakDown()] Question direction toUser\n";
+                break;}
+            case 2: {
+                if(Verbose)
+                    cout << "[c_Cortex::QuestionSentenceBreakDown()] Question direction to Report\n";
+                break;}
+            case 3: {
+                if(Verbose)
+                    cout << "[c_Cortex::QuestionSentenceBreakDown()] Question direction Yes/No\n";
+                break;}
+
+            default: if(Verbose) cout << "No direction detected.\n";
+        }
+
+
+
+
+
+
+    }
+
+//--------------------------CHECK FOR IMPLIED NAME------------------------------------------------------------
+ void CheckForImpliedName(){
+
+
+    // Subject must be noun
+    // must also start with capital letter
+
+    int Response = -1;
+    char FirstWordFirstLetter = GetWords(GetSubjectLocation())[0];
+    if (FirstWordFirstLetter >='A' && FirstWordFirstLetter <= 'Z' && GetWordType(GetSubjectLocation()) == 'n'){
+        SlowSpeak("Is " + GetWords(GetSubjectLocation())+ " the " + GetWords(GetIndirectObjectLocation()) + "'s name?");
+        Response = RequestUserResponse();
+        if(Response == 1){ // yes
+            //set subject to Proper Noun
+            SetWordType('P',GetSubjectLocation());
+            SlowSpeak(":)");
+            SetSubject(GetWordTokens(GetSubjectLocation()),GetWords(GetSubjectLocation()));
+            IncreaseMoodLevel();
+        }
+    }
+
+
+
+ }
+ //-------------------------------------END OF CHECK FOR IMPLIED NAME------------------------------------------------
+
+ //--------------------------CHECK FOR IMPLIED GENDER----------------------------------------------------------------
+ void CheckForImpliedGender(){
+        //qualification;
+        // subject must be pronoun   he,she,her, him
+        string MaleProNouns      = " he him his ";
+        string FemaleProNouns    = " she her ";
+        string SubjectText       = RightLobeMemory[GetSubject(1)].GetpCellDataString();   //pronoun has already been set as subject so get next
+        string ProNounResolution = "";
+        char GenderClass         = '\0';
+        int MatchedM             = MaleProNouns.find(" " + GetWordsLC(GetSubjectLocation())+" ");
+        int MatchedF             = FemaleProNouns.find(" " + GetWordsLC(GetSubjectLocation())+" ");
+        int Response             = -1;
+
+        if(MatchedF >=0){
+            ProNounResolution = "girl";
+            GenderClass       = 'G';}
+        else
+            if(MatchedM >=0){
+                ProNounResolution = "boy";
+                GenderClass       = 'M';}
+
+        if( (GetWordType(GetSubjectLocation()) == 'p') && ((MatchedF + MatchedM +1) >=0) ){
+            SlowSpeak("So " + SubjectText + " is a " + ProNounResolution + "?");
+            Response = RequestUserResponse();
+            if(Response == 1){
+                RightLobeMemory[GetSubject(1)].SetGenderClass(GenderClass);
+                SlowSpeak("Okay."); SlowSpeak(":)"); IncreaseMoodLevel();
+            }
+        }
+
+ }
+ //-----------------------------------END OF CHECK FOR IMPLIED GENDER-------------------------------------------------
 };
 
 #endif // C_CORTEX_H
